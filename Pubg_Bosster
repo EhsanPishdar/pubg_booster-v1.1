@@ -1,0 +1,131 @@
+#!/bin/bash
+# PUBG MOBILE BOOSTER (Non-Root, Optimized UI)
+# Author: Ehsan P.
+
+GAME_PACKAGE="com.tencent.ig"
+
+clear_screen() {
+    clear 2>/dev/null || echo -e "\n"
+}
+
+pause() {
+    read -p "Press Enter to continue..."
+}
+
+line() {
+    echo "--------------------------------------------"
+}
+
+header() {
+    clear_screen
+    echo "============================================"
+    echo "          PUBG MOBILE GAME BOOSTER"
+    echo "============================================"
+    echo
+}
+
+main_menu() {
+    while true; do
+        header
+        echo "Join Telegram Channel:"
+        echo "t.me/MAYKI_1_SHOP_PUBG"
+        echo
+        line
+        echo "[1] Start Game Boost"
+        echo "[2] Start Network Boost"
+        echo "[3] Launch PUBG"
+        echo "[4] Exit"
+        line
+        echo
+        read -p "Select Option: " op
+
+        case "$op" in
+            1) game_boost ;;
+            2) network_boost ;;
+            3) launch_pubg ;;
+            4) clear_screen; exit 0 ;;
+            *) echo "Invalid option"; sleep 1 ;;
+        esac
+    done
+}
+
+game_boost() {
+    header
+    echo "============== GAME BOOST =============="
+    echo "• Cleaning temporary cache"
+    rm -rf /sdcard/Android/data/$GAME_PACKAGE/cache/* 2>/dev/null
+
+    echo "• Soft RAM optimization"
+    am send-trim-memory com.termux 80 >/dev/null 2>&1
+
+    echo "• Closing background heavy apps"
+    for app in com.android.chrome com.facebook.katana com.youtube.android; do
+        am force-stop $app >/dev/null 2>&1
+    done
+
+    echo "• Applying FPS & graphics hint"
+    mkdir -p /sdcard/Android/data/$GAME_PACKAGE/files/UE4Game/ShadowTrackerExtra/ShadowTrackerExtra/Saved/Config/Android
+    echo "[/Script/Engine.RendererSettings]" > /sdcard/Android/data/$GAME_PACKAGE/files/UE4Game/ShadowTrackerExtra/ShadowTrackerExtra/Saved/Config/Android/GameUserSettings.ini
+    echo "bUse120FPS=True" >> /sdcard/Android/data/$GAME_PACKAGE/files/UE4Game/ShadowTrackerExtra/ShadowTrackerExtra/Saved/Config/Android/GameUserSettings.ini
+
+    echo
+    line
+    echo "[1] Launch PUBG"
+    echo "[2] Return"
+    line
+    read -p "Select: " c
+
+    case "$c" in
+        1) launch_pubg ;;
+        2) return ;;
+        *) return ;;
+    esac
+}
+
+network_boost() {
+    header
+    echo "============= NETWORK BOOST ============="
+    echo "• Resetting DNS cache"
+    ndc resolver flushdefaultif 2>/dev/null
+
+    echo "• Network stack refresh"
+    svc wifi disable >/dev/null 2>&1
+    sleep 1
+    svc wifi enable >/dev/null 2>&1
+
+    echo "• Searching best DNS"
+    best_dns=""
+    best_val=9999
+    for d in 1.1.1.1 8.8.8.8 9.9.9.9; do
+        t=$(ping -c1 -W1 $d 2>/dev/null | awk -F'time=' '/time=/{print $2}' | cut -d' ' -f1)
+        if [[ $t =~ ([0-9]+) ]]; then
+            val=${BASH_REMATCH[1]}
+            if [ $val -lt $best_val ]; then
+                best_val=$val
+                best_dns=$d
+            fi
+        fi
+    done
+
+    echo "Best DNS Detected: $best_dns"
+    echo
+    line
+    echo "[1] Run Ping Test"
+    echo "[2] Return"
+    line
+    read -p "Select: " c2
+
+    case "$c2" in
+        1) ping -c3 1.1.1.1; pause ;;
+        2) return ;;
+        *) return ;;
+    esac
+}
+
+launch_pubg() {
+    echo "Launching PUBG..."
+    am start -n $GAME_PACKAGE/.GameActivity >/dev/null 2>&1
+    sleep 1
+}
+
+main_menu
